@@ -192,6 +192,6 @@ while len(user_queue) > 0 and userqueue_processed <= userqueue_maxprocessed:
 		submission = submission_queue.pop()
 		if store_submission(submission) is True:
 			process_submission(submission)
-			output("Processed " + str(processed_submissions) + " submission(s) and " + str(processed_comments) + " comment(s).")
+			output("Processed " + str(processed_submissions) + " submission(s) and " + str(processed_comments) + " comment(s) after " + str(time.time() - start_time) + ".")
 
 	storecompleteduser(username)
