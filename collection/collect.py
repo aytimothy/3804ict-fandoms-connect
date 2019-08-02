@@ -1,6 +1,8 @@
+import datetime
 import mysql.connector
 import praw
 from praw.models import MoreComments
+import pytz
 import time
 import sys
 
@@ -13,7 +15,7 @@ mysql_password = "F4nd0m5.C0nnec7"
 reddit_appid = "0lKXI8oYAYGUKg"
 reddit_secret = "ptTp7vRNPVXQ0WIZwfcuAItUEcI"
 
-userqueue_maxlength = 2048
+userqueue_maxlength = 256
 userqueue_processed = 0
 userqueue_maxprocessed = 4096
 
@@ -37,21 +39,34 @@ def output(string):
 	print(string)
 	logfile.write(string + "\n")
 	logfile.close()
-	
+
+def otheroutput(string, verbose = False):
+	otherlogfile = open("read.log", "a")
+	if verbose is True:
+		print(string)
+	otherlogfile.write(string + "\n")
+	otherlogfile.close()
+
+def storecompleteduser(username):
+	completedfile = open("compelted.txt", "a")
+	completedfile.write(username + "\n")
+	completedfile.close()
 
 def store_comment(comment):
-	global db_cursor, db_conn
+	global processed_comments, db_conn, db_cursor
 	id = comment.id
-	parent = comment.parent_id
-	if parent == "t3_" + comment.link_id:
-		parent = ""
-	else:
-		parent = parent[3:]
-	submission = comment.link_id
+	otheroutput(id)
+	parent = comment.parent_id[3:]
+	submission = comment.link_id[3:]
 	score = comment.score
-	author = comment.author.name
-	timestamp = comment.created_utc
+	author = comment.author
+	if author is None:
+		author = "[Deleted]"
+	else:
+		author = author.name
+	timestamp = datetime.datetime.fromtimestamp(comment.created_utc).isoformat()
 	body = comment.body
+
 	store_comment_query = "INSERT INTO `Comments` (`ID`, `Parent`, `Submission`, `Score`, `Author`, `Timestamp`, `Body`) VALUES ('" + id + "', '" + parent + "', '" + submission + "', '" + str(score) + "', '" + author + "', '" + str(timestamp) + "', '" + body.replace("\"", "\\\"").replace("'", "\\'") + "')"
 	try:
 		db_cursor.execute(store_comment_query)
@@ -59,65 +74,63 @@ def store_comment(comment):
 		db_conn.rollback()
 		return False
 	db_conn.commit()
+	processed_comments += 1
 	return True
-	
+
 def store_submission(submission):
-	global db_cursor, db_conn
+	global db_conn, db_cursor
 	id = submission.id
-	subreddit = submission.subreddit.name
+	subreddit = submission.subreddit.display_name
 	istext = submission.is_self
 	istext_num = 0
 	if istext is True:
 		istext_num = 1
-	title = submission.name
+	title = submission.title
 	iscrosspost = False
 	iscrosspost_num = 0
 	if iscrosspost is True:
 		iscrosspost_num = 1
 	source = ""
 	link = submission.url
-	if istext is True:
-		link = ""
 	body = submission.selftext
 	score = submission.score
-	author = "[Unknown]"
-	if submission.author is None:
+	author = submission.author
+	if author is None:
 		author = "[Deleted]"
 	else:
-		author = submission.author.name
-	timestamp = submission.created_utc
-	
-	store_submission_query = "INSERT INTO `Submissions` (`ID`, `Subreddit`, `IsText`, `Title`, `IsCrosspost`, `Source`, `Link`, `Body`, `Score`, `Author`, `Timestamp`) VALUES ('" + id + "', '" + subreddit + "', '" + str(istext_num) + "', '" + title + "', '" + str(iscrosspost_num) + "', '" + source + "', '" + link + "', '" + body + "', '" + str(score) + "', '" + author + "', '" + str(timestamp) + "')"
+		author = author.name
+	timestamp = datetime.datetime.fromtimestamp(comment.created_utc).isoformat()
+
+	store_comment_query = "INSERT INTO `Submissions` (`ID`, `Subreddit`, `IsText`, `Title`, `IsCrosspost`, `Source`, `Link`, `Body`, `Score`, `Author`, `Timestamp`) VALUES ('" + id + "', '" + subreddit + "', '" + str(istext_num) + "', '" + title + "', '" + str(iscrosspost_num) + "', '" + source + "', '" + link + "', '" + body + "', '" + str(score) + "', '" + author + "', '" + str(timestamp) + "')"
 	try:
-		db_cursor.execute(store_submission_query)
+		db_cursor.execute(store_comment_query)
 	except:
 		db_conn.rollback()
 		return False
 	db_conn.commit()
 	return True
-	
+
 def process_submission(submission):
-	global user_queue, completed_queue, processed_comments
-	# //todo: Process overflows
+	global processed_submissions, reddit, user_queue, completed_queue
 	comment_forest = submission.comments
 	comments = [comment for comment in comment_forest]
 	while len(comments) > 0:
 		comment = comments.pop()
 		if isinstance(comment, MoreComments):
-			for new_comment in comment.comments:
-				comments.append(new_comment)
 			continue
-		replies_forest = comment.replies
-		for reply in replies_forest:
+		author = comment.author
+		if author is not None:
+			author = comment.author.name
+			if len(user_queue) < userqueue_maxlength:
+				if author not in user_queue and author not in completed_queue:
+					user_queue.append(author)
+					output("Found new user /u/" + author)
+		reply_forest = comment.replies
+		for reply in reply_forest:
 			comments.append(reply)
-		if comment.author is None:
-			continue
-		redditor = comment.author.name
-		if redditor in user_queue or redditor in completed_queue:
-			continue
-		user_queue.append(redditor)
-		output("Found new Redditor /u/" + redditor)
-		processed_comments += 1
+		store_comment(comment)
+
+	processed_submissions += 1
 
 reddit = praw.Reddit(client_id = reddit_appid, client_secret = reddit_secret, user_agent = "PRAW 6.3.1")
 if reddit is None:
@@ -127,7 +140,8 @@ output("Successfully connected to Reddit.")
 
 user_queue = []
 completed_queue = []
-user_queue.append("aytimothy")
+submission_queue = []
+
 
 db_id = 0
 db_conn = mysql.connector.connect(host = mysql_address, user = mysql_username[db_id], passwd = mysql_password, database = mysql_dbname[db_id])
@@ -137,38 +151,45 @@ if (db_conn is None):
 db_cursor = db_conn.cursor()
 output("Successfully connected to database.")
 
-output("// todo: Populate completed users.")
-output("// todo: Populate in-progress users.")
-
-while len(user_queue) > 0 and userqueue_processed <= userqueue_maxprocessed:
-	user = user_queue.pop()
-	redditor = reddit.redditor(user)
-	completed_queue.append(user)
-	output("Processing /u/" + user + "...")
+db_processed_users_query = "SELECT DISTINCT Author FROM `Comments` WHERE Author NOT IN (SELECT DISTINCT Author FROM `Submissions` ORDER BY Timestamp) ORDER BY Timestamp LIMIT " + str(userqueue_maxlength)
+# db_processed_users_query = "SELECT DISTINCT Author FROM `Comments` ORDER BY Timestamp"
+db_cursor.execute(db_processed_users_query)
+db_processed_users = db_cursor.fetchall()
+user_queue = [row[0] for row in db_processed_users]
+with open("completed.txt") as completedfile:
+	completedfile_contents = completedfile.readlines()
+completed_queue = [completeduser.strip() for completeduser in completedfile_contents]
+user_queue.append("aytimothy")
+print("Found " + str(len(user_queue)) + " user(s) waiting for processing, and " + str(len(completed_queue)) + " user(s) who have been mined.")
 	
-	output("Processing /u/" + user + "'s comments...")
-	for comment in redditor.comments.new():
-		if store_comment(comment) is True:
-			stored_comments += 1
-		
-		comment_submission = reddit.submission(id = comment.link_id[3:])
-		if store_submission(comment_submission) is True:
-			process_submission(comment_submission)
-			processed_submissions += 1
-			output("Processed " + str(processed_comments) + " comments and " + str(processed_submissions) + " submissions after " + str(time.time() - start_time) + "...")
-	output("Stored " + str(stored_comments) + " comments from " + str(len(completed_queue)) + " user(s) after " + str(time.time() - start_time) + "...")
-		
-	output("Processing /u/" + user + "'s submissions...")
-	for submission in redditor.submissions.new():
+while len(user_queue) > 0 and userqueue_processed <= userqueue_maxprocessed:
+	userqueue_processed += 1
+	username = user_queue.pop(0)
+	redditor = reddit.redditor(username)
+	if (redditor is None):
+		output("Error: Could not find /u/" + username)
+		continue
+	output("Processing /u/" + username + "...")
+
+	redditor_comments = redditor.comments.new()
+	redditor_submissions = redditor.submissions.new()
+
+	for comment in redditor_comments:
+		submission_id = comment.link_id[3:]
+		comment_id = comment.id
+		otheroutput(comment_id)
+		submission = reddit.submission(id = submission_id)
+		submission_queue.append(submission)
+
+	for submission in redditor_submissions:
+		submission_id = submission.id
+		otheroutput(submission_id)
+		submission_queue.append(submission)
+
+	while len(submission_queue) > 0:
+		submission = submission_queue.pop()
 		if store_submission(submission) is True:
 			process_submission(submission)
-			processed_submissions += 1
-		output("Processed " + str(processed_comments) + " comments and " + str(processed_submissions) + " submissions after " + str(time.time() - start_time) + "...")
-		
-	userqueue_processed += 1
-	
-output("Users not processed yet:")
-for username in user_queue:
-	output(username)
-		
-db_conn.close()
+			output("Processed " + str(processed_submissions) + " submission(s) and " + str(processed_comments) + " comment(s).")
+
+	storecompleteduser(username)
