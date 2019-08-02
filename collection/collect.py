@@ -14,6 +14,7 @@ mysql_password = "F4nd0m5.C0nnec7"
 
 reddit_appid = "0lKXI8oYAYGUKg"
 reddit_secret = "ptTp7vRNPVXQ0WIZwfcuAItUEcI"
+reddit_blacklist = ["AutoModerator", "CredoBot", "timezone_bot", "RemindMeBot", "GCX_Bot", "vReddit_Player_Bot"]
 
 userqueue_maxlength = 256
 userqueue_processed = 0
@@ -122,9 +123,10 @@ def process_submission(submission):
 		if author is not None:
 			author = comment.author.name
 			if len(user_queue) < userqueue_maxlength:
-				if author not in user_queue and author not in completed_queue:
-					user_queue.append(author)
-					output("Found new user /u/" + author)
+				if author not in reddit_blacklist:
+					if author not in user_queue and author not in completed_queue:
+						user_queue.append(author)
+						output("Found new user /u/" + author)
 		reply_forest = comment.replies
 		for reply in reply_forest:
 			comments.append(reply)
@@ -161,7 +163,7 @@ with open("completed.txt") as completedfile:
 completed_queue = [completeduser.strip() for completeduser in completedfile_contents]
 user_queue.append("aytimothy")
 print("Found " + str(len(user_queue)) + " user(s) waiting for processing, and " + str(len(completed_queue)) + " user(s) who have been mined.")
-	
+
 while len(user_queue) > 0 and userqueue_processed <= userqueue_maxprocessed:
 	userqueue_processed += 1
 	username = user_queue.pop(0)
