@@ -160,6 +160,7 @@ db_processed_users = db_cursor.fetchall()
 user_queue = [row[0] for row in db_processed_users]
 with open("completed.txt") as completedfile:
 	completedfile_contents = completedfile.readlines()
+	completedfile.close()
 completed_queue = [completeduser.strip() for completeduser in completedfile_contents]
 user_queue.append("aytimothy")
 print("Found " + str(len(user_queue)) + " user(s) waiting for processing, and " + str(len(completed_queue)) + " user(s) who have been mined.")
