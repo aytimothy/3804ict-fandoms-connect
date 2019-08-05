@@ -166,13 +166,11 @@ try:
 		for comment in redditor_comments:
 			submission_id = comment.link_id[3:]
 			comment_id = comment.id
-			otheroutput(comment_id)
 			submission = reddit.submission(id = submission_id)
 			submission_queue.append(submission)
 
 		for submission in redditor_submissions:
 			submission_id = submission.id
-			otheroutput(submission_id)
 			submission_queue.append(submission)
 
 		while len(submission_queue) > 0:
