@@ -24,7 +24,7 @@ Basics of what it does:
 def output(string, end = "\n"):
 	logfile = open("collect.log", "a")
 	print(string, end = end)
-	logfile.write(string + end)
+	logfile.write(str(string) + end)
 	logfile.close()
 
 reddit = praw.Reddit(client_id = reddit_appid, client_secret = reddit_secret, user_agent = "PRAW 6.3.1")
