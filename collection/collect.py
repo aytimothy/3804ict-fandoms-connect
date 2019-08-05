@@ -21,9 +21,9 @@ Basics of what it does:
 5. Go back to Step 1, but going through all the users in the list in Step 3.
 '''
 
-def output(string, end = "\n"):
+def output(string, end="\n"):
 	logfile = open("collect.log", "a")
-	print(string, end = end)
+	print(str(string), end = end)
 	logfile.write(str(string) + end)
 	logfile.close()
 
@@ -140,15 +140,17 @@ def process_submission(submission):
 
 	processed_submissions += 1
 
-start_time = time.time
+start_time = time.time()
 processed_comments = 0
 processed_submissions = 0
+submission_queue = []
 
 # -----------------------------------
 # Actual Script
 # -----------------------------------
 completed_users = readcompletedusers()
 user_queue = readuserqueue()
+userqueue_processed = 0
 
 try:
 	while len(user_queue) > 0 and userqueue_processed <= userqueue_maxprocessed:
