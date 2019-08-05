@@ -28,5 +28,10 @@ for username, dbname in zip(mysql_username, mysql_username):
 		cursor.execute(comments_table_create_query)
 	else:
 		print("\"Comments\" table found. Skipping!")
-		
+	if "Redditors" not in tables:
+		print("Could not find a \"Users\" table. Creating!")
+		users_table_create_query = "CREATE TABLE `Redditors` ( `ID` INT NOT NULL , `Priority` INT NOT NULL , `Username` VARCHAR(256) NOT NULL ) ENGINE = InnoDB;"
+		cursor.execute(users_table_create_query)
+	else:
+		print("\"Redditors\" table found. Skipping!")
 	connection.close()
