@@ -8,6 +8,7 @@ import praw
 from praw.models import MoreComments
 import pytz
 import time
+import traceback
 import sys
 
 '''
@@ -181,5 +182,7 @@ try:
 				output("Processed " + str(processed_submissions) + " submission(s) and " + str(processed_comments) + " comment(s) after " + str(time.time() - start_time) + ".")
 
 		storecompleteduser(username)
-except Exception:
+except Exception as e:
 	output(Exception)
+	output(e)
+	output(traceback.format_exc())
