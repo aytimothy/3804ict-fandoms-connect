@@ -152,8 +152,8 @@ completed_users = readcompletedusers()
 user_queue = readuserqueue()
 userqueue_processed = 0
 
-try:
-	while len(user_queue) > 0 and userqueue_processed <= userqueue_maxprocessed:
+while len(user_queue) > 0 and userqueue_processed <= userqueue_maxprocessed:
+	try:
 		userqueue_processed += 1
 		username = user_queue.pop(0)
 		redditor = reddit.redditor(username)
@@ -166,23 +166,41 @@ try:
 		redditor_submissions = redditor.submissions.new()
 
 		for comment in redditor_comments:
-			submission_id = comment.link_id[3:]
-			comment_id = comment.id
-			submission = reddit.submission(id = submission_id)
-			submission_queue.append(submission)
+			try:
+				submission_id = comment.link_id[3:]
+				comment_id = comment.id
+				submission = reddit.submission(id = submission_id)
+				submission_queue.append(submission)
+			except Exception as e:
+				output(comment)
+				output(e)
+				output(traceback.format_exc())
+				continue
 
 		for submission in redditor_submissions:
-			submission_id = submission.id
-			submission_queue.append(submission)
+			try:
+				submission_id = submission.id
+				submission_queue.append(submission)
+			except Exception as e:
+				output(submission)
+				output(e)
+				output(traceback.format_exc())
+				continue
 
 		while len(submission_queue) > 0:
-			submission = submission_queue.pop()
-			if store_submission(submission) is True:
-				process_submission(submission)
-				output("Processed " + str(processed_submissions) + " submission(s) and " + str(processed_comments) + " comment(s) after " + str(time.time() - start_time) + ".")
+			try:
+				submission = submission_queue.pop()
+				if store_submission(submission) is True:
+					process_submission(submission)
+					output("Processed " + str(processed_submissions) + " submission(s) and " + str(processed_comments) + " comment(s) after " + str(time.time() - start_time) + ".")
+			except Exception as e:
+				output(submission)
+				output(e)
+				output(traceback.format_exc())
+				continue
 
 		storecompleteduser(username)
-except Exception as e:
-	output(Exception)
-	output(e)
-	output(traceback.format_exc())
+	except Exception as e:
+		output(e)
+		output(traceback.format_exc())
+		continue
