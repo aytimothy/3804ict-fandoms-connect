@@ -1,0 +1,61 @@
+Successfully connected to Reddit.
+Successfully connected to database.
+Processing /u/joshiszero...
+Successfully connected to Reddit.
+Successfully connected to database.
+Processing /u/joshiszero...
+<class 'Exception'>
+name 'otheroutput' is not defined
+Traceback (most recent call last):
+  File "C:/Users/aytimothy/Documents/GitHub/3804ict-fandoms-connect/collection/collect.py", line 169, in <module>
+    otheroutput(comment_id)
+NameError: name 'otheroutput' is not defined
+
+Successfully connected to Reddit.
+Successfully connected to database.
+Processing /u/joshiszero...
+<class 'Exception'>
+name 'submission_queue' is not defined
+Traceback (most recent call last):
+  File "C:/Users/aytimothy/Documents/GitHub/3804ict-fandoms-connect/collection/collect.py", line 170, in <module>
+    submission_queue.append(submission)
+NameError: name 'submission_queue' is not defined
+
+Successfully connected to Reddit.
+Successfully connected to database.
+Processing /u/joshiszero...
+<class 'Exception'>
+unsupported operand type(s) for -: 'float' and 'builtin_function_or_method'
+Traceback (most recent call last):
+  File "C:/Users/aytimothy/Documents/GitHub/3804ict-fandoms-connect/collection/collect.py", line 182, in <module>
+    output("Processed " + str(processed_submissions) + " submission(s) and " + str(processed_comments) + " comment(s) after " + str(time.time() - start_time) + ".")
+TypeError: unsupported operand type(s) for -: 'float' and 'builtin_function_or_method'
+
+Successfully connected to Reddit.
+Successfully connected to database.
+Processing /u/joshiszero...
+<class 'Exception'>
+unsupported operand type(s) for -: 'float' and 'builtin_function_or_method'
+Traceback (most recent call last):
+  File "C:/Users/aytimothy/Documents/GitHub/3804ict-fandoms-connect/collection/collect.py", line 182, in <module>
+    output("Processed " + str(processed_submissions) + " submission(s) and " + str(processed_comments) + " comment(s) after " + str(time.time() - start_time) + ".")
+TypeError: unsupported operand type(s) for -: 'float' and 'builtin_function_or_method'
+
+Successfully connected to Reddit.
+Successfully connected to database.
+Processing /u/joshiszero...
+<class 'Exception'>
+unsupported operand type(s) for -: 'float' and 'builtin_function_or_method'
+Traceback (most recent call last):
+  File "C:/Users/aytimothy/Documents/GitHub/3804ict-fandoms-connect/collection/collect.py", line 182, in <module>
+    output("Processed " + str(processed_submissions) + " submission(s) and " + str(processed_comments) + " comment(s) after " + str(time.time() - start_time) + ".")
+TypeError: unsupported operand type(s) for -: 'float' and 'builtin_function_or_method'
+
+Successfully connected to Reddit.
+Successfully connected to database.
+Processing /u/joshiszero...
+Processed 1 submission(s) and 8 comment(s) after 17.80266046524048.
+Processed 2 submission(s) and 20 comment(s) after 30.044734477996826.
+Processed 3 submission(s) and 20 comment(s) after 31.84990954399109.
+Processed 4 submission(s) and 20 comment(s) after 32.90907120704651.
+Processed 5 submission(s) and 26 comment(s) after 38.440274715423584.
