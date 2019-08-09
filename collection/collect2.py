@@ -119,6 +119,7 @@ def store_submission(submission):
 	return True
 
 def process_submission(submission):
+	global processed_submissions
 	store_submission(submission)
 	processed_submissions += 1
 
@@ -148,38 +149,18 @@ while len(user_queue) > 0 and userqueue_processed <= userqueue_maxprocessed:
 		redditor_submissions = redditor.submissions.new()
 
 		for comment in redditor_comments:
-			try:
-				submission_id = comment.link_id[3:]
-				comment_id = comment.id
-				submission = reddit.submission(id = submission_id)
-				submission_queue.append(submission)
-			except Exception as e:
-				output(comment)
-				output(e)
-				output(traceback.format_exc())
-				continue
+			if store_comment(comment):
+				processed_comments += 1
+			if store_submission(comment.submission):
+				processed_submissions += 1
+		output("Processed " + str(processed_comments) + " comment(s) and " + str(
+			processed_submissions) + " submission(s) after " + str(time.time() - start_time) + "...")
 
 		for submission in redditor_submissions:
-			try:
-				submission_id = submission.id
-				submission_queue.append(submission)
-			except Exception as e:
-				output(submission)
-				output(e)
-				output(traceback.format_exc())
-				continue
-
-		while len(submission_queue) > 0:
-			try:
-				submission = submission_queue.pop()
-				if store_submission(submission) is True:
-					process_submission(submission)
-					output("Processed " + str(processed_submissions) + " submission(s) and " + str(processed_comments) + " comment(s) after " + str(time.time() - start_time) + ".")
-			except Exception as e:
-				output(submission)
-				output(e)
-				output(traceback.format_exc())
-				continue
+			if store_submission(submission):
+				processed_submissions += 1
+		output("Processed " + str(processed_comments) + " comment(s) and " + str(
+			processed_submissions) + " submission(s) after " + str(time.time() - start_time) + "...")
 
 		storecompleteduser(username)
 	except Exception as e:

@@ -106,10 +106,10 @@ def store_submission(submission):
 		author = author.name
 	timestamp = datetime.datetime.fromtimestamp(comment.created_utc).isoformat()
 
-	store_comment_query = "INSERT INTO `Submissions` (`ID`, `Subreddit`, `IsText`, `Title`, `IsCrosspost`, `Source`, `Link`, `Body`, `Score`, `Author`, `Timestamp`) VALUES ('" + id + "', '" + subreddit + "', '" + str(
+	store_comment_query = "INSERT INTO `Submissions` (`ID`, `Subreddit`, `IsText`, `Title`, `IsCrosspost`, `Source`, `Link`, `Body`, `Score`, `Author`, `Timestamp`, `Processed`) VALUES ('" + id + "', '" + subreddit + "', '" + str(
 		istext_num) + "', '" + title + "', '" + str(
 		iscrosspost_num) + "', '" + source + "', '" + link + "', '" + body + "', '" + str(
-		score) + "', '" + author + "', '" + str(timestamp) + "')"
+		score) + "', '" + author + "', '" + str(timestamp) + "', 0)"
 	try:
 		db_cursor.execute(store_comment_query)
 	except:
