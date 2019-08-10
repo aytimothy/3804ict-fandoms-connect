@@ -126,6 +126,8 @@ def process_submission(submission):
 start_time = time.time()
 processed_comments = 0
 processed_submissions = 0
+stored_comments = 0
+stored_submissions = 0
 submission_queue = []
 
 # -----------------------------------
@@ -150,17 +152,24 @@ while len(user_queue) > 0 and userqueue_processed <= userqueue_maxprocessed:
 
 		for comment in redditor_comments:
 			if store_comment(comment):
-				processed_comments += 1
+				stored_comments += 1
+            processed_comments += 1
 			if store_submission(comment.submission):
-				processed_submissions += 1
+				stored_submissions += 1
+            processed_submissions += 1
 		output("Processed " + str(processed_comments) + " comment(s) and " + str(
 			processed_submissions) + " submission(s) after " + str(time.time() - start_time) + "...")
+		output("Stored " + str(stored_comments) + " comment(s) and " + str(
+			stored_submissions) + " submission(s) after " + str(time.time() - start_time) + "...")
 
 		for submission in redditor_submissions:
 			if store_submission(submission):
-				processed_submissions += 1
+                stored_submissions += 1
+            processed_submissions += 1
 		output("Processed " + str(processed_comments) + " comment(s) and " + str(
 			processed_submissions) + " submission(s) after " + str(time.time() - start_time) + "...")
+		output("Stored " + str(stored_comments) + " comment(s) and " + str(
+			stored_submissions) + " submission(s) after " + str(time.time() - start_time) + "...")
 
 		storecompleteduser(username)
 	except Exception as e:
